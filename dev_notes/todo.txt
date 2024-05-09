@@ -1,0 +1,3 @@
+Dont forget to change email to UNIQUE before production
+Create table for jobs
+Figure out a database structure for completed jobs

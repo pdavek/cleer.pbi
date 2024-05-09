@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cleer.pbi</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+      <div class="header">
+        <h1>cleer<span class="dot">.</span></h1>
+    </div>
+    <div class="main">
+        <div class="ui">
+            <div class="content">
+                <ul id="jobs">
+                    <div id="job">
+                        <p id="job-name"></p>
+                        <p id="job-description"></p>
+                        <p id="difficulty"></p>
+                    </div>
+                </ul>
+                <div class="divider-line"></div>
+                <div class="job-descriptions">
+                    <p class="job-title">Job description</p>
+                    <p id="question"></p>
+                </div>
+            </div>
+        </div>
+        <div class="code">
+            <div class="editor-container">
+                <div id="code-input" class="code-input" contenteditable="true" placeholder="Write your DAX code here..."></div>
+                <div id="code-display" class="code-display"></div>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="clock" id="clock"></div>
+            <div class="user-stats">
+                <div class="stopwatch"></div>
+                <p>User statistics will come here.
+                    Number of solved questions,
+                    Points,
+                    Graphs,
+                    Calendar,
+                    Status,
+                    etc.
+                </p>
+            </div>
+            <form action="{{ url_for('logout') }}" method="get">
+                <button type="submit" class="logoutButton">Logout</button>
+            </form>
+            <form action="{{ url_for('uploadjob') }}" method="get">
+                <button type="submit" class="logoutButton">Upload jobs</button>
+            </form>
+        </div>
+    </div>
+    <script src="/static/js/time.js"></script>
+    <script src="/static/js/codeEditor.js"></script>
+    <script src="/static/js/autocorrect.js"></script>
+    <script src="/static/js/jobs.js"></script>
+    </main>
+</body>
+</html>

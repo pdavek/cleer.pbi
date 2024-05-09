@@ -1,0 +1,380 @@
+:root{
+    --cleerGreen: #9FFFD6;
+    --cleerPink:#FFDCE2;
+    --cleerBlue: #C2E2FF;
+    --cleerBeige: #FDE8CE;
+    --accentPink: #FE879B;
+    --accentBlue: #64BEF1;
+    --accentGreen: #49C281;
+    --accentBeige: #FFAF4B;
+    --accentGrey: #BABABA;
+    --codeBackground: #323232;
+    --selectedBackground: #444444;
+    --mainText: #E3E3E3;
+    --codeText: 'Source Code Pro';
+    --cleerText: 'Outfit';
+    --codeText2: 'Fira Code'
+  }
+
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none; 
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  
+
+  body{
+    padding: 0;
+    margin: 0;
+    background-color: var(--selectedBackground);
+    position: fixed;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  h1{
+    font-family: 'Outfit';
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--mainText);
+  }
+  .dot{
+    margin-left: -6px;
+    color: var(--selectedBackground);
+  }
+
+
+  .header{
+    background-color: var(--accentGreen);
+    height: 64px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+  }
+
+  .main{
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    flex-direction: row;
+  }
+
+  .ui{
+    width: 60%;
+
+  }
+
+    .startButton, .loginButton{
+        display: none;
+        font-family: 'Outfit', sans-serif;
+        width: 128px;
+        padding: 8px;
+        background-color: var(--selectedBackground);
+        color: var(--mainText);
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .startButton:hover, .loginButton:hover{
+        display: none;
+        box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+        color: var(--accentGreen);
+    }
+
+    #jobs {
+        list-style-type: none;
+        width: auto;
+        height: 500px;
+        overflow-y: scroll;
+        font-family: 'Outfit', 'sans-serif';
+        padding: 12px;
+    }
+
+    #jobs li {
+        border-radius: 10px;
+        border: 1px solid transparent;
+        margin-bottom: 10px;
+        background: var(--codeBackground);
+        box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+        transition: box-shadow 0.3s ease;
+        padding: 12px;
+        cursor: pointer;
+    }
+  
+    /* Style for job name */
+    #jobs li p:first-child {
+        font-weight: 300;
+        color: var(--mainText);
+    }
+    
+    /* Style for job description */
+    #jobs li p:nth-child(2) {
+        margin-bottom: 2px;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        color: var(--accentGreen);
+    }
+    
+    /* Style for difficulty */
+    #jobs li p:nth-child(3) {
+        color: var(--accentGrey);
+        font-size: 12px;
+    }
+    
+    #jobs li:hover{
+        border: 1px solid transparent;
+        box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+    }
+
+    #jobs li.clicked{
+        border: 1px solid var(--accentGreen);
+        
+    }
+
+  .divider-line{
+    background-color: #929292;
+    height: 6px;
+    opacity: 70%;
+  }
+
+  .job-descriptions{
+    height: 300px;
+    margin: 12px;
+    padding-top: 18px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 200;
+    font-size: 16px;
+    color: var(--mainText);
+    border-radius: 10px;
+    border: 1px solid transparent;
+    margin-bottom: 10px;
+    background: var(--codeBackground);
+    box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+    transition: box-shadow 0.3s ease;
+    padding: 12px;
+
+  }
+
+  .job-title{
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accentGreen);
+  }
+
+
+  /* =======Code section ||||||||| Code section========= */
+
+  .code{
+    width: 40%;
+    height: 100vh;
+
+  }
+
+
+  .editor-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  .code-input {
+    color: transparent;
+    font-family: var(--codeText2), sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    height: 100vh;
+    width: 100%; /* Adjusted width */
+    padding: 32px;
+    caret-color: white;
+    background-color: var(--codeBackground);
+    resize: none;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    
+  }
+
+
+  .code-display {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 1;
+    font-family: var(--codeText2), sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: pre-wrap;
+    height: 100vh;
+    width: 100%; /* Adjusted width */
+    padding: 32px;
+    color: white;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  
+  .editor-container:focus, .code-input:focus, .code-display:focus {
+    outline: none;
+  }
+  
+/* ====== CLOCK ====== CLOCK ====== CLOCK ======*/
+
+
+  .stats{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .clock {
+    font-family: 'Outfit', sans-serif;
+    width: 300px;
+    color: var(--mainText);
+    background-color: var(--codeBackground);
+    padding: 12px;
+    margin: 12px;
+    margin-top: 42px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+    transition: box-shadow 0.3s ease;
+
+}
+
+.clock:hover{
+    box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+}
+
+.clock {
+    font-size: 1em; /* Font size for the clock */
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.clock span {
+    width: 2em; /* Width of each digit */
+    background-color: var(--codeBackground); /* Background color of each digit */
+    padding: 0.5em;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Box shadow for each digit */
+    margin: 0 5px; /* Spacing between digits */
+}
+
+.clock span:first-child {
+    margin-left: 0; /* Remove margin from the first digit */
+}
+
+.clock span:last-child {
+    margin-right: 0; /* Remove margin from the last digit */
+}
+
+.clock span:nth-child(4) {
+    width: 1em; /* Adjust width for the colon */
+}
+
+.clock span:nth-child(7) {
+    width: auto; /* Allow flexibility for AM/PM */
+}
+
+.clock span:nth-child(7)::before {
+    content: '\00a0'; /* Add a space before AM/PM */
+}
+
+/* ====== CLOCK OVER ====== CLOCK OVER ====== CLOCK OVER ======*/
+
+
+
+/* ====== STOPWATCH ====== STOPWATCH ====== STOPWATCH ======*/
+
+/*     stopwatch related design here later      */
+
+
+/* ====== STOPWATCH OVER====== STOPWATCH OVER====== STOPWATCH OVER======*/
+
+.user-stats{
+    display: flex;
+    flex-direction: column;
+    font-family: 'Outfit', sans-serif;
+    width: 300px;
+    height: 600px;
+    color: var(--mainText);
+    background-color: var(--codeBackground);
+    padding: 12px;
+    margin: 12px;
+    margin-top: 42px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+    transition: box-shadow 0.3s ease;
+    align-items: start;
+    justify-content: start;
+}
+
+
+.login, .register, .registerButton, .logoutButton{
+  margin: 12px;
+  font-family: 'Outfit', sans-serif;
+  width: 76px;
+  padding: 8px;
+  background-color: var(--selectedBackground);
+  color: var(--mainText);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.login:hover, .register:hover, .registerButton:hover{
+  box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+  color: var(--accentGreen);
+}
+
+.logoutButton{
+  background-color: var(--codeBackground);
+  color: var(--accentGrey);
+  margin-top: 24px;
+}
+.logoutButton:hover{
+  box-shadow: 6px 8px 18px rgba(110, 23, 42, 0.3);
+  color: var(--accentPink);
+}
+
+/* Styles for input fields */
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 200px;
+  padding: 8px;
+  margin: 8px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--selectedBackground);
+  color: var(--mainText);
+  box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.1), 0px 8px 16px rgba(68, 68, 68, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+input[type="text"]:hover,
+input[type="password"]:hover,
+input[type="email"]:hover{
+  box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+  outline: none;
+  box-shadow: 0px 4px 12px rgba(68, 68, 68, 0.3), 0px 8px 16px rgba(68, 68, 68, 0.3);
+}
+
+
+/*.user-stats:hover{
+    box-shadow: 6px 8px 18px rgba(22, 112, 47, 0.3);
+}
+*/

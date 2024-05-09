@@ -1,0 +1,9 @@
+[
+    {
+        "id": "1",
+        "name": "Calculate Sales",
+        "description": "Hi, I need all sales by Mike in December 2023",
+        "difficulty": "Easy",
+        "question": "There is a sales table called 'sales' within the database. It only has 3 columns: date, sales_amount, seller. I need to know how much sales Mike made in December 2023 but unfortunately the date is just a piece of text like 27122023. Can you write me DAX to solve this issue?"
+    }
+]

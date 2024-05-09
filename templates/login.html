@@ -1,0 +1,58 @@
+{% extends "baseplate.html" %}
+{% block title %} Log in {% endblock %}
+{% block content %}
+<main>
+    <div class="header">
+      <h1>cleer<span class="dot">.</span></h1>
+  </div>
+  <div class="main">
+      <div class="ui">
+          <div class="content">
+              <ul id="jobs">
+                  <div id="job">
+                      <p id="job-name"></p>
+                      <p id="job-description"></p>
+                      <p id="difficulty"></p>
+                  </div>
+              </ul>
+              <div class="divider-line"></div>
+              <div class="job-descriptions">
+                  <p class="job-title">Job description</p>
+                  <p id="question"></p>
+              </div>
+          </div>
+      </div>
+      <div class="code">
+          <div class="editor-container">
+              <div id="code-input" class="code-input" contenteditable="true" placeholder="Write your DAX code here..."></div>
+              <div id="code-display" class="code-display"></div>
+          </div>
+      </div>
+      <div class="stats">
+          <div class="clock" id="clock"></div>
+          <div class="user-stats">
+              <div class="stopwatch"></div>
+              <p>
+                  Welcome to cleer! <br> <br>
+                  Dive into our world of Power BI challenges and sharpen your DAX skills. <br>
+                  Join us in tackling real-world scenarios, 
+                  earning cleer. <br> points with each solved challenge. 
+                  Let's make data work for you! <br><br>
+                  There is a long list of unsolved problems so better get started. <br>
+                  Log in or register with the button below. <br>
+              </p>
+                  <form action="/login" method="POST">
+                      <input type="text" name="username" placeholder="Username" required>
+                      <input type="password" name="password" placeholder="Password" required>
+                      <button type="submit" class="login">Log in</button>
+                  </form> 
+              <a href="/register"><button class="register">Register</button></a>
+          </div>
+      </div>
+  </div>
+  <script src="/static/js/time.js"></script>
+  <script src="/static/js/codeEditor.js"></script>
+  <script src="/static/js/autocorrect.js"></script>
+  <script src="/static/js/not_logged_jobs.js"></script>
+  </main>
+{% endblock %}
