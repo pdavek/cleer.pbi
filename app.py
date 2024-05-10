@@ -5,7 +5,7 @@ import hashlib
 import uuid
 import json
 import time
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from flask_session import Session
 
 app = Flask(__name__)
@@ -19,6 +19,7 @@ Session(app)
 
 DATABASE = 'database.db'
 
+# Function to create the database table if it doesn't exist
 def create_database():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -34,6 +35,7 @@ def create_database():
     conn.commit()
     conn.close()
 
+# Function to get the next serial number for users
 def get_next_serial_number():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -42,6 +44,7 @@ def get_next_serial_number():
     conn.close()
     return serial_number
 
+# Homepage
 @app.route('/')
 def index():
     if 'username' in session:
@@ -49,6 +52,7 @@ def index():
     else:
         return redirect(url_for('login'))
 
+# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -69,10 +73,12 @@ def login():
 
     return render_template('login.html')
 
+# User not found route
 @app.route('/usernotfound')
 def usernotfound():
     return render_template('usernotfound.html')
 
+# Upload job route
 @app.route('/uploadjob')
 def uploadjob():
     if session.get('username') == 'davek':
@@ -81,6 +87,7 @@ def uploadjob():
         flash('You are not authenticated to upload jobs.')
         return redirect(url_for('index'))
 
+# Upload job post route
 @app.route('/upload_job', methods=['POST'])
 def upload_job():
     if session.get('username') != 'davek':
@@ -114,6 +121,7 @@ def upload_job():
 
     return 'Job added successfully!'
 
+# Register route
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -134,12 +142,15 @@ def register():
 
     return render_template('register.html')
 
+# Get current timestamp
 def current_timestamp():
     return int(time.time())
 
+# Generate unique ID
 def generate_unique_id():
     return str(uuid.uuid4())
 
+# Start timer for solving
 def start_timer():
     session['start_time'] = datetime.now()
 
@@ -150,81 +161,26 @@ def get_elapsed_time():
         return datetime.now() - start_time
     else:
         return None
+    
 
-@app.route('/start_solving', methods=['POST'])
-def start_solving():
-    data = request.json
-    question_id = data.get('questionId')
-    session_id = session.sid  # Get session ID
-    username = session.get('username')
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
 
-    # Check if there's an open entry for the given question ID
-    conn = sqlite3.connect('user_interactions.db')
+def create_user_interactions_table():
+    conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id FROM user_interactions
-        WHERE question_id = ? AND end_timestamp IS NULL
-    ''', (question_id,))
-    existing_entry = cursor.fetchone()
-    if existing_entry:
-        # Update the existing entry with an end timestamp
-        cursor.execute('''
-            UPDATE user_interactions
-            SET end_timestamp = ?
-            WHERE id = ?
-        ''', (current_time, existing_entry[0]))
-    else:
-        # Insert a new entry
-        cursor.execute('''
-            INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
-            VALUES (?, ?, ?, ?)
-        ''', (session_id, username, question_id, current_time))
-    
-    # Fetch user input from HTML form
-    user_input = request.form.get('user_input')
-
-    # Fetch correct answer from jobs.json
-    with open('static/jobs.json', 'r') as file:
-        jobs = json.load(file)
-    correct_answer = next(job['answer'] for job in jobs if job['id'] == question_id)
-
-    # Insert into user_solutions table
-    cursor.execute('''
-        INSERT INTO user_solutions (question_id, username, user_input, correct_answer)
-        VALUES (?, ?, ?, ?)
-    ''', (question_id, username, user_input, correct_answer))
-    
+        CREATE TABLE IF NOT EXISTS user_interactions (
+            id INTEGER PRIMARY KEY,
+            session_id TEXT,
+            username TEXT,
+            question_id INTEGER,
+            start_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_timestamp TIMESTAMP,
+            FOREIGN KEY (username) REFERENCES users(username),
+            FOREIGN KEY (question_id) REFERENCES jobs(id)
+        )
+    ''')
     conn.commit()
     conn.close()
-
-    return jsonify(success=True)
-
-
-
-@app.route('/done_and_submit', methods=['POST'])
-def done_and_submit():
-    data = request.json
-    question_id = data.get('questionId')
-
-    # Update end timestamp and calculate elapsed time
-    end_time = datetime.now()
-    elapsed_time = get_elapsed_time
-
-    # Update end timestamp and elapsed time in SQLite database
-    conn = sqlite3.connect('user_interactions.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE user_interactions
-        SET end_timestamp = ?,
-            Time = ?
-        WHERE question_id = ? AND end_timestamp IS NULL
-    ''', (end_time.strftime('%Y-%m-%d %H:%M:%S'), elapsed_time, question_id))
-    conn.commit()
-    conn.close()
-
-    return jsonify(success=True)
-
 
 def create_user_solutions_table():
     conn = sqlite3.connect('user_interactions.db')
@@ -242,12 +198,115 @@ def create_user_solutions_table():
     conn.commit()
     conn.close()
 
+if __name__ == '__main__':
+    create_database()
+    create_user_interactions_table()  # Add this line to create the user_interactions table
+    app.run(debug=True)
 
+
+# Route to start solving
+@app.route('/start_solving', methods=['POST'])
+def start_solving():
+    try:
+        data = request.json
+        question_id = data.get('questionId')
+        session_id = session.sid  # Get session ID
+        username = session.get('username')
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
+
+        # Check if there's already an open entry for the given question ID and session
+        conn = sqlite3.connect('user_interactions.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id FROM user_interactions
+            WHERE question_id = ? AND session_id = ? AND end_timestamp IS NULL
+        ''', (question_id, session_id))
+        existing_entry = cursor.fetchone()
+
+        if existing_entry:
+            # If an entry already exists, do nothing
+            conn.close()
+            return jsonify(success=True)
+        else:
+            # Insert a new entry for starting solving
+            cursor.execute('''
+                INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
+                VALUES (?, ?, ?, ?)
+            ''', (session_id, username, question_id, current_time))  # Include current_time
+            conn.commit()
+            conn.close()
+            return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e))
+
+
+# Route to finish solving and submit
+@app.route('/done_and_submit', methods=['POST'])
+def done_and_submit():
+    data = request.json
+    question_id = data.get('questionId')
+    end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
+    print("End Time:", end_time)
+
+    # Update the entry for finishing solving
+    conn = sqlite3.connect('user_interactions.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE user_interactions
+        SET end_timestamp = ?
+        WHERE question_id = ? AND session_id = ? AND end_timestamp IS NULL
+    ''', (end_time, question_id, session.sid))
+    conn.commit()
+
+    # Check if the UPDATE query is executed properly
+    print("Rows affected:", cursor.rowcount)
+
+    conn.close()
+
+    return jsonify(success=True)
+
+
+def insert_user_solution(question_id, username, user_input):
+    # Fetch correct answer from jobs.json
+    with open('static/jobs.json', 'r') as file:
+        jobs = json.load(file)
+    correct_answer = next((job['answer'] for job in jobs if job['id'] == question_id), None)
+
+    # Determine result
+    result = "correct" if user_input == correct_answer else "incorrect"
+
+    # Insert into user_solutions table
+    conn = sqlite3.connect('user_interactions.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO user_solutions (question_id, username, user_input, correct_answer, result)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (question_id, username, user_input, correct_answer, result))
+    conn.commit()
+    conn.close()
+
+    # Route to submit user solution
+@app.route('/submit_solution', methods=['POST'])
+def submit_solution():
+    data = request.json
+    question_id = data.get('questionId')
+    user_input = data.get('userInput')
+    username = session.get('username')
+
+    insert_user_solution(question_id, username, user_input)
+
+    return jsonify(success=True)
+
+
+
+# Logout route
 @app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
+# Run the app
 if __name__ == '__main__':
     create_database()
+    create_user_solutions_table()
     app.run(debug=True)
