@@ -99,33 +99,90 @@ function createJobEntry(jobId, jobName, jobDescription, difficulty, question) {
 
     //start solving 
 
+// Global variable to track button state
+let solvingInProgress = false;
+
 function startSolving(questionId) {
     // Print a message to the console
     console.log("Start solving button clicked for question ID:", questionId);
 
-    // Send AJAX request to Flask backend
-    fetch('/start_solving', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ questionId: questionId })
-    })
-    .then(response => {
-        // Toggle button text between "Start solving" and "Done and submit!"
-        var button = document.getElementById('startButton-' + questionId);
-        if (button.textContent === "Start solving") {
-            button.textContent = "Done and submit!";
-        } else {
-            button.textContent = "Start solving";
-        }
-    })
-    .catch(error => console.error('Error starting solving:', error));
+    // Toggle solvingInProgress variable
+    solvingInProgress = !solvingInProgress;
+
+    // Check if solving is in progress
+    if (solvingInProgress) {
+        // Change button text to "Done and submit!"
+        document.getElementById('startButton-' + questionId).textContent = "Done and submit!";
+    } else {
+        // Change button text to "Start solving"
+        document.getElementById('startButton-' + questionId).textContent = "Start solving";
+    }
+
+    // Check if solving is in progress
+    if (!solvingInProgress) {
+        // Get user input from code-input element
+        const userInput = document.getElementById('code-input').innerText.trim();
+        console.log("User input:", userInput); // Print user input to console for testing
+
+        // Clear user input and restore placeholder
+        document.getElementById('code-input').innerText = "";
+        handlePlaceholder();
+
+        // Send AJAX request to Flask backend
+        fetch('/start_solving', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ questionId: questionId })
+        })
+        .catch(error => console.error('Error starting solving:', error));
+    }
+}
+
+// Function to handle placeholder
+function handlePlaceholder() {
+    const codeInput = document.getElementById('code-input');
+    const formattedInput = codeDisplay.innerHTML; // Get the formatted text
+
+    // Check if the input area is empty after formatting
+    if (codeInput.innerText.trim() === "" && formattedInput === "") {
+        codeInput.innerText = "Write your DAX here..."; // Restore placeholder text
+        codeDisplay.innerHTML = ""; // Clear formatted text display
+    } else if (codeInput.innerText === "Write your DAX here...") {
+        codeDisplay.innerHTML = ""; // Clear formatted text display
+    }
+}
+
+// Event listener to handle blur
+codeInput.addEventListener('blur', function() {
+    handlePlaceholder();
+    clearCodeDisplay();
+});
+
+// Function to clear the code display
+function clearCodeDisplay() {
+    codeDisplay.innerHTML = ""; // Clear formatted text display
 }
 
 
-// Function to handle "Done and submit!" button click
+// Event listener to handle blur
+codeInput.addEventListener('blur', function() {
+    handlePlaceholder();
+});
+
+    
 function doneAndSubmit(questionId) {
+    // Get user input from code-input element
+    const userInput = codeInput.innerText.trim();
+    console.log("User input:", userInput); // Print user input to console for testing
+
+    // Clear the code input area
+    codeInput.innerText = "";
+    
+    // Restore placeholder
+    handlePlaceholder();
+
     // Send AJAX request to Flask backend
     fetch('/done_and_submit', {
         method: 'POST',
@@ -142,4 +199,3 @@ function doneAndSubmit(questionId) {
     })
     .catch(error => console.error('Error done and submit:', error));
 }
-

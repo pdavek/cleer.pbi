@@ -180,6 +180,21 @@ def start_solving():
             INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
             VALUES (?, ?, ?, ?)
         ''', (session_id, username, question_id, current_time))
+    
+    # Fetch user input from HTML form
+    user_input = request.form.get('user_input')
+
+    # Fetch correct answer from jobs.json
+    with open('static/jobs.json', 'r') as file:
+        jobs = json.load(file)
+    correct_answer = next(job['answer'] for job in jobs if job['id'] == question_id)
+
+    # Insert into user_solutions table
+    cursor.execute('''
+        INSERT INTO user_solutions (question_id, username, user_input, correct_answer)
+        VALUES (?, ?, ?, ?)
+    ''', (question_id, username, user_input, correct_answer))
+    
     conn.commit()
     conn.close()
 
@@ -194,7 +209,7 @@ def done_and_submit():
 
     # Update end timestamp and calculate elapsed time
     end_time = datetime.now()
-    elapsed_time = (end_time - start_time).total_seconds() / 60  # Elapsed time in minutes
+    elapsed_time = get_elapsed_time
 
     # Update end timestamp and elapsed time in SQLite database
     conn = sqlite3.connect('user_interactions.db')
@@ -209,6 +224,24 @@ def done_and_submit():
     conn.close()
 
     return jsonify(success=True)
+
+
+def create_user_solutions_table():
+    conn = sqlite3.connect('user_interactions.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_solutions (
+            id INTEGER PRIMARY KEY,
+            question_id INTEGER,
+            username TEXT,
+            user_input TEXT,
+            correct_answer TEXT,
+            result TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 
 @app.route('/logout')
 def logout():
