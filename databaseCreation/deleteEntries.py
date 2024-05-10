@@ -17,7 +17,7 @@ def delete_records(database_file, table_name, record_ids):
             conn.close()
 
 database_file = "user_interactions.db"
-table_name = "user_interactions" #"user_solutions" 
+table_name = "user_interactions" 
 record_ids = []
 for i in range(101):
     record_ids.append(i)

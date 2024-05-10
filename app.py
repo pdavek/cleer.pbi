@@ -204,63 +204,78 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-# Route to start solving
 @app.route('/start_solving', methods=['POST'])
 def start_solving():
-    try:
-        data = request.json
-        question_id = data.get('questionId')
-        session_id = session.sid  # Get session ID
-        username = session.get('username')
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
+    data = request.json
+    question_id = data.get('questionId')
+    session_id = session.sid  # Get session ID
+    username = session.get('username')
+    start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
 
-        # Check if there's already an open entry for the given question ID and session
-        conn = sqlite3.connect('user_interactions.db')
-        cursor = conn.cursor()
+    # Check if there's an open entry for the given question ID
+    conn = sqlite3.connect('user_interactions.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id FROM user_interactions
+        WHERE question_id = ? AND end_timestamp IS NULL
+    ''', (question_id,))
+    existing_entry = cursor.fetchone()
+    if existing_entry:
+        # Update the existing entry with an end timestamp
         cursor.execute('''
-            SELECT id FROM user_interactions
-            WHERE question_id = ? AND session_id = ? AND end_timestamp IS NULL
-        ''', (question_id, session_id))
-        existing_entry = cursor.fetchone()
+            UPDATE user_interactions
+            SET end_timestamp = ?
+            WHERE id = ?
+        ''', (start_time, existing_entry[0]))
+    else:
+        # Insert a new entry
+        cursor.execute('''
+            INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
+            VALUES (?, ?, ?, ?)
+        ''', (session_id, username, question_id, start_time))
+    conn.commit()
+    conn.close()
 
-        if existing_entry:
-            # If an entry already exists, do nothing
-            conn.close()
-            return jsonify(success=True)
-        else:
-            # Insert a new entry for starting solving
-            cursor.execute('''
-                INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
-                VALUES (?, ?, ?, ?)
-            ''', (session_id, username, question_id, current_time))  # Include current_time
-            conn.commit()
-            conn.close()
-            return jsonify(success=True)
-    except Exception as e:
-        return jsonify(success=False, error=str(e))
+    return jsonify(success=True)
 
-
-# Route to finish solving and submit
 @app.route('/done_and_submit', methods=['POST'])
 def done_and_submit():
     data = request.json
     question_id = data.get('questionId')
-    end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
-    print("End Time:", end_time)
 
-    # Update the entry for finishing solving
+    # Check if there's an open entry for the given question ID with a NULL end timestamp
     conn = sqlite3.connect('user_interactions.db')
     cursor = conn.cursor()
     cursor.execute('''
-        UPDATE user_interactions
-        SET end_timestamp = ?
-        WHERE question_id = ? AND session_id = ? AND end_timestamp IS NULL
-    ''', (end_time, question_id, session.sid))
+        SELECT id, start_timestamp FROM user_interactions
+        WHERE question_id = ? AND end_timestamp IS NULL
+    ''', (question_id,))
+    existing_entry = cursor.fetchone()
+
+    if existing_entry:
+        # Update the existing entry with an end timestamp and calculate elapsed time
+        start_time = datetime.strptime(existing_entry[1], '%Y-%m-%d %H:%M:%S')
+        end_time = datetime.now()
+        elapsed_time = (end_time - start_time).total_seconds() / 60  # Elapsed time in minutes
+
+        cursor.execute('''
+            UPDATE user_interactions
+            SET end_timestamp = ?,
+                Time = ?
+            WHERE id = ?
+        ''', (end_time.strftime('%Y-%m-%d %H:%M:%S'), elapsed_time, existing_entry[0]))
+    else:
+        # If no open entry exists, create a new entry
+        session_id = session.sid  # Get session ID
+        username = session.get('username')
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
+
+        cursor.execute('''
+            INSERT INTO user_interactions (session_id, username, question_id, start_timestamp, end_timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (session_id, username, question_id, current_time, current_time))
+
     conn.commit()
-
-    # Check if the UPDATE query is executed properly
-    print("Rows affected:", cursor.rowcount)
-
     conn.close()
 
     return jsonify(success=True)
