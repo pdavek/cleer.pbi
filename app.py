@@ -7,7 +7,11 @@ import json
 import time
 from datetime import datetime, timedelta
 from flask_session import Session
+from dotenv import load_dotenv
+from openai import OpenAI
+import re
 
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=72)
@@ -15,9 +19,16 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_COOKIE_NAME'] = 'cleer_session_' + str(uuid.uuid4())  # Set session cookie name with 'cleer.' prefix
 
+
+
 Session(app)
 
 DATABASE = 'database.db'
+
+client = OpenAI(
+    api_key='sk-proj-nYnxDOCCZq2BVSNiw1GFT3BlbkFJu9Y5UlMkspUR1PzMfsVB'
+    )
+
 
 # Function to create the database table if it doesn't exist
 def create_database():
@@ -161,7 +172,7 @@ def get_elapsed_time():
         return datetime.now() - start_time
     else:
         return None
-    
+
 
 
 def create_user_interactions_table():
@@ -192,6 +203,7 @@ def create_user_solutions_table():
             user_input TEXT,
             correct_answer TEXT,
             result TEXT,
+            feedback TEXT,
             timestamp TIMESTAMP
         )
     ''')
@@ -239,38 +251,92 @@ def done_and_submit():
     return jsonify(success=True)
 
 
-# Function to insert user solution into user_solutions table
+def get_ai_response(user_input):
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    
+    # Extract the response from the AI
+    ai_response = response.choices[0].message['content']
+    
+    return ai_response
+
 def insert_user_solution(question_id, username, user_input):
     # Fetch correct answer from jobs.json
     with open('static/jobs.json', 'r') as file:
         jobs = json.load(file)
     correct_answer = next((job['answer'] for job in jobs if job['id'] == question_id), None)
 
-    # Determine result
-    result = "correct" if user_input == correct_answer else "incorrect"
+    # Construct prompt for OpenAI API request
+    prompt = f"The user provided the following solution:\n{user_input}\n\nThe correct answer is:\n{correct_answer}\n\nIs the user input correct? Please answer with yes or no. Please write a short feedback starting by 'feedback:' "
+
+    try:
+        # Request completion from OpenAI API
+        response = client.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_input},
+                {"role": "assistant", "content": get_ai_response(user_input)}
+            ]
+        )
+
+        # Extract result and feedback from API response
+        ai_response = response.choices[0].message['content']
+        
+        # Check if the AI response contains "yes" or "no" for correctness
+        if "yes" in ai_response.lower():
+            result = "Correct"
+        elif "no" in ai_response.lower():
+            result = "Incorrect"
+        else:
+            # If neither "yes" nor "no" is found, set result to "Unknown" or handle as needed
+            result = "Unknown"
+
+        # Extract the feedback if it follows the specified format
+        feedback_pattern = r"feedback:(.*)"
+        feedback_match = re.search(feedback_pattern, ai_response, re.IGNORECASE)
+        feedback = feedback_match.group(1).strip() if feedback_match else None
+    except Exception as e:
+        # Print any exception that occurs during processing
+        print(f"Error processing AI response: {e}")
+        result = "Unknown"
+        feedback = None
+
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # Insert into user_solutions table
     conn = sqlite3.connect('user_interactions.db')
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO user_solutions (question_id, username, user_input, correct_answer, result, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (question_id, username, user_input, correct_answer, result, current_time))
+        INSERT INTO user_solutions (question_id, username, user_input, correct_answer, result, feedback, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (question_id, username, user_input, correct_answer, result, feedback, current_time))
     conn.commit()
     conn.close()
 
+
+
 @app.route('/submit_solution', methods=['POST'])
 def submit_solution():
-    data = request.json
-    question_id = data.get('questionId')
-    user_input = data.get('userInput')
-    username = session.get('username')
-    
+    try:
+        data = request.json
+        question_id = data.get('questionId')
+        user_input = data.get('userInput')
+        username = session.get('username')
 
-    insert_user_solution(question_id, username, user_input)
+        insert_user_solution(question_id, username, user_input)
 
-    return jsonify(success=True)
+        return jsonify(success=True)
+    except Exception as e:
+        # Log any exceptions that occur
+        print(f"Error in submit_solution route: {e}")
+        return jsonify(success=False, error=str(e)), 500
+
 
 # Logout route
 @app.route('/logout')

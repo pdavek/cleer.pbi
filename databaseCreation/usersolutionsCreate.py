@@ -11,6 +11,7 @@ cursor.execute('''
         user_input TEXT,
         correct_answer TEXT,
         result TEXT,
+        feedback TEXT,
         timestamp TIMESTAMP
     )
 ''')
