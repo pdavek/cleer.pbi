@@ -11,8 +11,8 @@ cursor.execute('''
         session_id TEXT,
         username TEXT,
         question_id INTEGER,
-        start_timestamp TIMESTAMP,
-        end_timestamp TIMESTAMP
+        job_id INTEGER,
+        timestamp TIMESTAMP
     )
 ''')
 

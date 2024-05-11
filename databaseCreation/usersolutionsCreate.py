@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 conn = sqlite3.connect('user_interactions.db')
 cursor = conn.cursor()
@@ -9,7 +10,8 @@ cursor.execute('''
         username TEXT,
         user_input TEXT,
         correct_answer TEXT,
-        result TEXT
+        result TEXT,
+        timestamp TIMESTAMP
     )
 ''')
 conn.commit()

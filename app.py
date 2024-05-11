@@ -173,8 +173,7 @@ def create_user_interactions_table():
             session_id TEXT,
             username TEXT,
             question_id INTEGER,
-            start_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            end_timestamp TIMESTAMP,
+            timestamp TIMESTAMP,
             FOREIGN KEY (username) REFERENCES users(username),
             FOREIGN KEY (question_id) REFERENCES jobs(id)
         )
@@ -192,95 +191,55 @@ def create_user_solutions_table():
             username TEXT,
             user_input TEXT,
             correct_answer TEXT,
-            result TEXT
+            result TEXT,
+            timestamp TIMESTAMP
         )
     ''')
     conn.commit()
     conn.close()
 
-if __name__ == '__main__':
-    create_database()
-    create_user_interactions_table()  # Add this line to create the user_interactions table
-    app.run(debug=True)
-
 
 @app.route('/start_solving', methods=['POST'])
 def start_solving():
-    data = request.json
-    question_id = data.get('questionId')
-    session_id = session.sid  # Get session ID
+    session_id = session.sid
     username = session.get('username')
-    start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
+    question_id = request.json.get('questionId')
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
 
-    # Check if there's an open entry for the given question ID
+    # Insert a new entry for every start_solving request
     conn = sqlite3.connect('user_interactions.db')
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id FROM user_interactions
-        WHERE question_id = ? AND end_timestamp IS NULL
-    ''', (question_id,))
-    existing_entry = cursor.fetchone()
-    if existing_entry:
-        # Update the existing entry with an end timestamp
-        cursor.execute('''
-            UPDATE user_interactions
-            SET end_timestamp = ?
-            WHERE id = ?
-        ''', (start_time, existing_entry[0]))
-    else:
-        # Insert a new entry
-        cursor.execute('''
-            INSERT INTO user_interactions (session_id, username, question_id, start_timestamp)
-            VALUES (?, ?, ?, ?)
-        ''', (session_id, username, question_id, start_time))
+        INSERT INTO user_interactions (session_id, username, question_id, timestamp)
+        VALUES (?, ?, ?, ?)
+    ''', (session_id, username, question_id, current_time))
     conn.commit()
     conn.close()
 
     return jsonify(success=True)
+
 
 @app.route('/done_and_submit', methods=['POST'])
 def done_and_submit():
-    data = request.json
-    question_id = data.get('questionId')
+    session_id = session.sid
+    username = session.get('username')
+    question_id = request.json.get('questionId')
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
 
-    # Check if there's an open entry for the given question ID with a NULL end timestamp
+    # Insert a new entry for every done_and_submit request
     conn = sqlite3.connect('user_interactions.db')
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id, start_timestamp FROM user_interactions
-        WHERE question_id = ? AND end_timestamp IS NULL
-    ''', (question_id,))
-    existing_entry = cursor.fetchone()
-
-    if existing_entry:
-        # Update the existing entry with an end timestamp and calculate elapsed time
-        start_time = datetime.strptime(existing_entry[1], '%Y-%m-%d %H:%M:%S')
-        end_time = datetime.now()
-        elapsed_time = (end_time - start_time).total_seconds() / 60  # Elapsed time in minutes
-
-        cursor.execute('''
-            UPDATE user_interactions
-            SET end_timestamp = ?,
-                Time = ?
-            WHERE id = ?
-        ''', (end_time.strftime('%Y-%m-%d %H:%M:%S'), elapsed_time, existing_entry[0]))
-    else:
-        # If no open entry exists, create a new entry
-        session_id = session.sid  # Get session ID
-        username = session.get('username')
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get current date & time
-
-        cursor.execute('''
-            INSERT INTO user_interactions (session_id, username, question_id, start_timestamp, end_timestamp)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (session_id, username, question_id, current_time, current_time))
-
+        INSERT INTO user_interactions (session_id, username, question_id, timestamp)
+        VALUES (?, ?, ?, ?)
+    ''', (session_id, username, question_id, current_time))
     conn.commit()
     conn.close()
 
     return jsonify(success=True)
 
 
+# Function to insert user solution into user_solutions table
 def insert_user_solution(question_id, username, user_input):
     # Fetch correct answer from jobs.json
     with open('static/jobs.json', 'r') as file:
@@ -289,30 +248,29 @@ def insert_user_solution(question_id, username, user_input):
 
     # Determine result
     result = "correct" if user_input == correct_answer else "incorrect"
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # Insert into user_solutions table
     conn = sqlite3.connect('user_interactions.db')
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO user_solutions (question_id, username, user_input, correct_answer, result)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (question_id, username, user_input, correct_answer, result))
+        INSERT INTO user_solutions (question_id, username, user_input, correct_answer, result, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (question_id, username, user_input, correct_answer, result, current_time))
     conn.commit()
     conn.close()
 
-    # Route to submit user solution
 @app.route('/submit_solution', methods=['POST'])
 def submit_solution():
     data = request.json
     question_id = data.get('questionId')
     user_input = data.get('userInput')
     username = session.get('username')
+    
 
     insert_user_solution(question_id, username, user_input)
 
     return jsonify(success=True)
-
-
 
 # Logout route
 @app.route('/logout')
