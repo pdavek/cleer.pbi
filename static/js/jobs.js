@@ -176,7 +176,13 @@ function doneAndSubmit(questionId) {
         // Restore placeholder
         handlePlaceholder();
 
-        // Send AJAX request to Flask backend
+        // Update the result paragraph with a loading message
+        document.getElementById('result').textContent = 'Getting your result...';
+
+        // Change cursor to loading icon
+        document.body.style.cursor = 'wait';
+
+        // Send AJAX request to Flask backend to submit solution
         fetch('/submit_solution', {
             method: 'POST',
             headers: {
@@ -189,10 +195,26 @@ function doneAndSubmit(questionId) {
             if (document.getElementById('startButton-' + questionId).textContent === 'Done and submit!') {
                 document.getElementById('startButton-' + questionId).textContent = 'Start solving';
             }
+
+            // Simulate a delay (2-3 seconds) before fetching the AI response
+            setTimeout(() => {
+                // Fetch AI response after delay
+                fetch('/get_latest_response')
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Latest response:", data.latestResponse); // Log latest response to console
+                    // Update the result paragraph with the AI response
+                    document.getElementById('result').textContent = data.latestResponse;
+                    // Restore cursor
+                    document.body.style.cursor = 'default';
+                })
+                .catch(error => console.error('Error fetching AI response:', error));
+            }, 2000); // Change this value to adjust the delay (in milliseconds)
         })
         .catch(error => console.error('Error done and submit:', error));
     }
 }
+
 
 // Function to fetch job entries when the page loads
 window.addEventListener('load', fetchJobEntries);

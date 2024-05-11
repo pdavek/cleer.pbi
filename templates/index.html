@@ -43,14 +43,8 @@
             <div class="clock" id="clock"></div>
             <div class="user-stats">
                 <div class="stopwatch"></div>
-                <p>User statistics will come here.
-                    Number of solved questions,
-                    Points,
-                    Graphs,
-                    Calendar,
-                    Status,
-                    etc.
-                </p>
+                <p>Your result: <p>
+                <p id="result"></p>
             </div>
             <form action="{{ url_for('logout') }}" method="get">
                 <button type="submit" class="logoutButton">Logout</button>

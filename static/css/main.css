@@ -316,6 +316,10 @@
     justify-content: start;
 }
 
+#register{
+  color: var(--accentGreen);
+}
+
 
 .login, .register, .registerButton, .logoutButton{
   margin: 12px;
