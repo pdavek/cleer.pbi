@@ -26,7 +26,7 @@ Session(app)
 DATABASE = 'database.db'
 
 client = OpenAI(
-    api_key='sk-proj-nYnxDOCCZq2BVSNiw1GFT3BlbkFJu9Y5UlMkspUR1PzMfsVB'
+    api_key=os.environ.get('openai_api')
     )
 
 
