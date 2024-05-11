@@ -19,8 +19,6 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_COOKIE_NAME'] = 'cleer_session_' + str(uuid.uuid4())  # Set session cookie name with 'cleer.' prefix
 
-
-
 Session(app)
 
 DATABASE = 'database.db'
@@ -177,8 +175,6 @@ def get_elapsed_time():
     else:
         return None
 
-
-
 def create_user_interactions_table():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -226,7 +222,6 @@ def create_user_stats_table():
     ''')
     conn.commit()
     conn.close()
-
 
 
 @app.route('/start_solving', methods=['POST'])
@@ -346,6 +341,10 @@ def submit_solution():
 
 latest_response = None
 
+import sqlite3
+
+import sqlite3
+
 def update_user_stats():
     # Connect to the users database
     conn_users = sqlite3.connect('database.db')
@@ -355,32 +354,50 @@ def update_user_stats():
     conn_interactions = sqlite3.connect('user_interactions.db')
     cursor_interactions = conn_interactions.cursor()
 
+    # Fetch unique usernames from the users table
     cursor_users.execute('''
-        SELECT username FROM users
+        SELECT DISTINCT username FROM users
     ''')
     all_users = cursor_users.fetchall()
 
+    # Loop through each unique username
     for user in all_users:
         username = user[0]
 
+        # Count total solves for the user
         cursor_interactions.execute('''
             SELECT COUNT(*) FROM user_solutions WHERE username = ? 
         ''', (username,))
         total_solves = cursor_interactions.fetchone()[0]
 
+        # Count correct solves for the user
         cursor_interactions.execute('''
             SELECT COUNT(*) FROM user_solutions WHERE username = ? AND result = 'Correct!'
         ''', (username,))
         correct_solves = cursor_interactions.fetchone()[0]
 
+        # Check if the username already exists in user_stats table
         cursor_interactions.execute('''
-            INSERT OR REPLACE INTO user_stats (username, total_solves, correct_solves) VALUES (?, ?, ?)
-        ''', (username, total_solves, correct_solves))
+            SELECT COUNT(*) FROM user_stats WHERE username = ?
+        ''', (username,))
+        existing_user = cursor_interactions.fetchone()[0]
 
+        if existing_user == 0:
+            # If the username doesn't exist, insert new record
+            cursor_interactions.execute('''
+                INSERT INTO user_stats (username, total_solves, correct_solves) VALUES (?, ?, ?)
+            ''', (username, total_solves, correct_solves))
+        else:
+            # If the username exists, update the record
+            cursor_interactions.execute('''
+                UPDATE user_stats SET total_solves = ?, correct_solves = ? WHERE username = ?
+            ''', (total_solves, correct_solves, username))
+
+    # Commit changes and close connections
     conn_interactions.commit()
     conn_interactions.close() 
-
     conn_users.close()
+
 
 @app.route('/get_latest_response')
 def get_latest_response():
