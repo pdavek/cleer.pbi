@@ -86,6 +86,11 @@
         color: var(--accentGreen);
     }
 
+    .ui{
+
+      max-width: 560px;
+    }
+
     #jobs {
         list-style-type: none;
         width: auto;
@@ -171,7 +176,7 @@
   /* =======Code section ||||||||| Code section========= */
 
   .code{
-    width: 40%;
+    min-width: 60%;
     height: 100vh;
 
   }
@@ -235,7 +240,7 @@
 
   .clock {
     font-family: 'Outfit', sans-serif;
-    width: 300px;
+    width: 200px;
     color: var(--mainText);
     background-color: var(--codeBackground);
     padding: 12px;
@@ -301,7 +306,8 @@
     display: flex;
     flex-direction: column;
     font-family: 'Outfit', sans-serif;
-    width: 300px;
+    width: 200px;
+    min-width: fit-content;
     min-height: 440px;
     height: auto;
     color: var(--mainText);
