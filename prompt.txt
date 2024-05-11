@@ -1,2 +1,7 @@
-user input: this is a test for my databse entry
+user input: my_solution = calculate(
+    sum('sales'[sales_amount]),
+    'sales'[seller] = "Mike" &&
+    right(text('sales'[date], 00000000), 4) = "2023" &&
+    mid(text('sales'[date], 00000000), 3, 2) = "12"
+)
 Correct answer: *=calculate(sum('sales'[sales_amount]), 'sales'[seller]= 'Mike' && right(text('sales'[date], 00000000), 4) = '2023' && mid(text('sales'[date], 00000000), 3, 2) = '12')
