@@ -7,7 +7,7 @@ return
 calculate(
     sum('sales'[sales_amount]),
     'sales'[seller] = "Mike" &&
-    right(a, 4) = "2024" && 
+    right(a, 4) = "2023" &&
     mid(a, 3, 2) = "12"
 )
 Correct answer: *=calculate(sum('sales'[sales_amount]), 'sales'[seller]= 'Mike' && right(text('sales'[date], 00000000), 4) = '2023' && mid(text('sales'[date], 00000000), 3, 2) = '12')

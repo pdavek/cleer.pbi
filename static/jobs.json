@@ -6,5 +6,26 @@
         "difficulty": "Easy",
         "question": "There is a sales table called 'sales' within the database. It only has 3 columns: date, sales_amount, seller. I need to know how much sales Mike made in December 2023 but unfortunately the date is just a number formatted like 27122023. Can you write me DAX to solve this issue?",
         "answer": "*=calculate(sum('sales'[sales_amount]), 'sales'[seller]= 'Mike' && right(text('sales'[date], 00000000), 4) = '2023' && mid(text('sales'[date], 00000000), 3, 2) = '12')"
+    },
+    {
+        "id": "2",
+        "name": "Even or ODD ?",
+        "description": "I need to know whether all my recipients have pairs or not.",
+        "difficulty": "Easy",
+        "question": "Can you write a custom column in DAX for my 'guests' table that check row by row whether the value in [recipients] is even or odd? Let's not have the event manager guess, instead of returning true or false just return Even or Odd."
+    },
+    {
+        "id": "3",
+        "name": "Look back in time!",
+        "description": "We need the maximum temperature of each day from the previous year.",
+        "difficulty": "Easy",
+        "question": "We have 'weather_2024' table where we store the max temperature of each day of the year. We would like you to add a column that takes the highest temperature from the same day but in 2023, from the weather_2023 table. In both cases data is stored in the [temperature] and [date] columns and a relationship on dates is active. \r\nNow that I think about it, I'm not sure if 'weather_2023' has lowest an highest temperature for each day, please ensure you are only taking the highest. "
+    },
+    {
+        "id": "4",
+        "name": "Calculate cumulative revenue",
+        "description": "We want to know the sum of all revenue generated so far.",
+        "difficulty": "Hard",
+        "question": "You have a table named \"Orders\" containing the columns [OrderDate] and [Revenue]. Your need to create a measure that calculates the cumulative revenue over time. It will be a useful card on the dashboard."
     }
 ]
